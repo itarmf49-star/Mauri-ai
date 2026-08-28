@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mauri AI — لوحة التحكم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Tajawal:wght@300;400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a120d; --bg-elev:#0f1a13; --panel:#152218; --panel-2:#1a2a1e;
+    --border:#25392c; --gold:#e3b23c; --gold-dim:#8a6b2a;
+    --emerald:#1f8a5a; --emerald-soft:#173a28; --red:#b4402f;
+    --text:#f3eee3; --text-muted:#9cae9f; --text-faint:#5f7267;
+    --radius:14px; --shadow: 0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 85% -10%, rgba(227,178,60,.08), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(31,138,90,.10), transparent 60%),
+      var(--bg);
+    color:var(--text); font-family:'Tajawal',sans-serif; min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{font-family:'IBM Plex Sans Arabic',sans-serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;direction:ltr;display:inline-block;}
+  ::selection{background:var(--gold);color:#1a1405;}
+  a{color:inherit;} button{font-family:inherit;cursor:pointer;}
+  .app{display:flex;min-height:100vh;}
+
+  .sidebar{
+    width:250px;flex-shrink:0;
+    background:linear-gradient(180deg, var(--bg-elev), #0a130d);
+    border-left:1px solid var(--border); padding:22px 16px;
+    display:flex;flex-direction:column;gap:26px; position:sticky;top:0;height:100vh;
+  }
+  .brand{display:flex;align-items:center;gap:10px;padding:0 6px;}
+  .brand-mark{
+    width:38px;height:38px;border-radius:10px;
+    background:conic-gradient(from 220deg, var(--gold), var(--emerald), var(--gold));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Sans Arabic';font-weight:700;color:#0a120d;font-size:17px;
+    box-shadow:0 4px 14px rgba(227,178,60,.25); flex-shrink:0;
+  }
+  .brand-name{font-family:'IBM Plex Sans Arabic';font-weight:700;font-size:17px;letter-spacing:.2px;}
+  .brand-sub{font-size:11px;color:var(--text-faint);margin-top:1px;}
+  .control-tag{
+    margin-top:2px;font-size:10px;background:var(--emerald-soft);color:#4fd18f;
+    padding:2px 8px;border-radius:20px;display:inline-block;border:1px solid rgba(31,138,90,.35);
+  }
+
+  nav{display:flex;flex-direction:column;gap:4px;}
+  .nav-item{
+    display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;
+    color:var(--text-muted);font-size:14px;font-weight:500;border:1px solid transparent;transition:.15s;
+  }
+  .nav-item:hover{background:var(--panel);color:var(--text);}
+  .nav-item.active{background:var(--emerald-soft);color:var(--text);border-color:rgba(31,138,90,.35);}
+  .nav-icon{width:18px;height:18px;flex-shrink:0;opacity:.9;}
+  .nav-badge{margin-right:auto;font-size:10px;background:var(--panel-2);color:var(--text-faint);padding:2px 7px;border-radius:20px;}
+
+  .sidebar-footer{margin-top:auto;font-size:11px;color:var(--text-faint);padding:10px 6px 0;line-height:1.7;border-top:1px solid var(--border);}
+  .sidebar-footer b{color:var(--gold);}
+
+  .main{flex:1;min-width:0;padding:26px 34px 60px;}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:26px;flex-wrap:wrap;gap:14px;}
+  .page-title{font-size:24px;font-weight:700;margin:0 0 4px;}
+  .page-sub{color:var(--text-muted);font-size:13.5px;margin:0;}
+
+  .view{display:none;} .view.active{display:block;animation:fadeIn .35s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  .grid{display:grid;gap:16px;}
+  .grid-4{grid-template-columns:repeat(4,1fr);}
+  .grid-3{grid-template-columns:repeat(3,1fr);}
+  .grid-2{grid-template-columns:2fr 1fr;}
+  @media(max-width:1000px){.grid-4{grid-template-columns:repeat(2,1fr);}.grid-3{grid-template-columns:1fr;}.grid-2{grid-template-columns:1fr;}}
+
+  .card{background:linear-gradient(180deg, var(--panel), var(--bg-elev));border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;}
+  .stat-card{position:relative;overflow:hidden;}
+  .stat-label{font-size:12.5px;color:var(--text-muted);margin-bottom:8px;}
+  .stat-value{font-family:'IBM Plex Sans Arabic';font-size:30px;font-weight:700;}
+  .stat-value span{color:var(--gold);}
+  .stat-delta{font-size:11.5px;color:var(--emerald);margin-top:6px;}
+
+  .radar-wrap{display:flex;align-items:center;gap:22px;flex-wrap:wrap;}
+  .radar{position:relative;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle, rgba(31,138,90,.08) 0%, transparent 70%);border:1px solid var(--border);flex-shrink:0;}
+  .radar.scanning::before{
+    content:"";position:absolute;inset:0;border-radius:50%;
+    background:conic-gradient(from 0deg, rgba(227,178,60,.6), transparent 45deg);
+    animation:sweep 2.2s linear infinite;
+    -webkit-mask:radial-gradient(circle, transparent 0%, transparent 20%, black 21%);
+    mask:radial-gradient(circle, transparent 0%, transparent 20%, black 21%);
+  }
+  .radar-ring{position:absolute;border:1px solid rgba(156,174,159,.18);border-radius:50%;}
+  .radar-ring.r1{inset:20%;} .radar-ring.r2{inset:40%;} .radar-ring.r3{inset:60%;}
+  .radar-blip{position:absolute;width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold);animation:pulseBlip 2.4s ease-in-out infinite;}
+  @keyframes sweep{to{transform:rotate(360deg);}}
+  @keyframes pulseBlip{0%,100%{opacity:.5;transform:scale(.85);}50%{opacity:1;transform:scale(1.15);}}
+  .radar-caption{font-size:13px;color:var(--text-muted);line-height:1.8;flex:1;min-width:220px;}
+  .radar-caption b{color:var(--text);font-weight:600;}
+
+  .scan-form{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+  .scan-form .field{flex:1;min-width:160px;margin-bottom:0;}
+  .scan-note{font-size:11.5px;color:var(--text-faint);margin-top:10px;line-height:1.8;background:var(--bg-elev);border:1px dashed var(--border);padding:10px 12px;border-radius:8px;}
+  .scan-note b{color:var(--gold);}
+
+  .section-title{font-size:15px;font-weight:700;margin:0 0 14px;display:flex;align-items:center;justify-content:space-between;}
+  .pill{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--panel-2);color:var(--text-muted);border:1px solid var(--border);}
+  .pill.demo{background:rgba(227,178,60,.12);color:var(--gold);border-color:rgba(227,178,60,.3);}
+
+  .btn{background:var(--emerald);color:#0a1a10;border:none;padding:10px 18px;border-radius:9px;font-weight:700;font-size:13.5px;display:inline-flex;align-items:center;gap:7px;transition:.15s;}
+  .btn:hover{filter:brightness(1.1);} .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn.gold{background:var(--gold);color:#231a05;}
+  .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text);}
+  .btn.ghost:hover{border-color:var(--gold-dim);}
+  .btn.sm{padding:6px 12px;font-size:12px;}
+
+  input,select,textarea{background:var(--bg-elev);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:8px;font-family:inherit;font-size:13.5px;width:100%;}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--emerald);outline-offset:1px;border-color:var(--emerald);}
+  label{font-size:12.5px;color:var(--text-muted);margin-bottom:5px;display:block;}
+  .field{margin-bottom:12px;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(5,10,7,.6);backdrop-filter:blur(3px);z-index:50;align-items:center;justify-content:center;}
+  .modal-bg.open{display:flex;}
+  .modal{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:22px;width:420px;max-width:92vw;box-shadow:var(--shadow);}
+  .modal h3{margin:0 0 16px;font-size:16px;}
+  .modal-actions{display:flex;gap:10px;margin-top:16px;justify-content:flex-end;}
+
+  .list-item{display:flex;align-items:center;gap:14px;padding:13px 6px;border-bottom:1px solid var(--border);}
+  .list-item:last-child{border-bottom:none;}
+  .avatar{width:36px;height:36px;border-radius:9px;background:var(--panel-2);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--gold);font-family:'IBM Plex Sans Arabic';flex-shrink:0;}
+  .li-main{flex:1;min-width:0;}
+  .li-title{font-weight:600;font-size:14px;}
+  .li-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .status-tag{font-size:11px;padding:4px 10px;border-radius:20px;white-space:nowrap;}
+  .status-new{background:rgba(156,174,159,.12);color:var(--text-muted);}
+  .status-contacted{background:rgba(227,178,60,.14);color:var(--gold);}
+  .status-replied{background:rgba(31,138,90,.16);color:#4fd18f;}
+  .status-deal{background:rgba(180,64,47,.15);color:#e08a7a;}
+  .empty{padding:30px 10px;text-align:center;color:var(--text-faint);font-size:13px;}
+
+  .chat-shell{display:flex;flex-direction:column;height:calc(100vh - 170px);border:1px solid var(--border);border-radius:var(--radius);background:var(--panel);overflow:hidden;}
+  .chat-log{flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:14px;}
+  .msg{max-width:78%;padding:12px 15px;border-radius:13px;font-size:13.5px;line-height:1.85;white-space:pre-wrap;}
+  .msg.user{align-self:flex-start;background:var(--emerald-soft);border:1px solid rgba(31,138,90,.3);border-bottom-right-radius:3px;}
+  .msg.ai{align-self:flex-end;background:var(--bg-elev);border:1px solid var(--border);border-bottom-left-radius:3px;}
+  .msg.ai b{color:var(--gold);}
+  .chat-input-row{display:flex;gap:10px;padding:14px 16px;border-top:1px solid var(--border);background:var(--bg-elev);}
+  .chat-input-row textarea{resize:none;height:44px;}
+  .typing{align-self:flex-end;font-size:12px;color:var(--text-faint);padding:0 4px;}
+  .chat-hint{padding:10px 22px 0;font-size:12px;color:var(--text-faint);}
+
+  .report-box{white-space:pre-wrap;font-family:'IBM Plex Mono',monospace;font-size:12.5px;line-height:1.9;background:var(--bg-elev);border:1px solid var(--border);border-radius:10px;padding:18px;color:var(--text-muted);direction:ltr;text-align:left;}
+  .report-box b{color:var(--gold);}
+
+  .page-footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--border);font-size:11.5px;color:var(--text-faint);text-align:center;}
+  .page-footer b{color:var(--gold);}
+
+  ::-webkit-scrollbar{width:8px;} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">M</div>
+      <div>
+        <div class="brand-name">Mauri AI</div>
+        <div class="brand-sub">لوحة التحكم الداخلية</div>
+        <span class="control-tag">Admin</span>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-item active" data-view="overview">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>
+        الرئيسية
+      </div>
+      <div class="nav-item" data-view="opportunities">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
+        الفرص الاستثمارية
+        <span class="nav-badge" id="badge-opps">0</span>
+      </div>
+      <div class="nav-item" data-view="companies">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="14" rx="1.5"/><path d="M8 7V4h8v3"/></svg>
+        الشركات المستهدفة
+        <span class="nav-badge" id="badge-companies">0</span>
+      </div>
+      <div class="nav-item" data-view="requests">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h5"/></svg>
+        الطلبات الواردة
+        <span class="nav-badge" id="badge-requests">0</span>
+      </div>
+      <div class="nav-item" data-view="messages">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.5 8.5 0 01-12.4 7.5L3 20l1.2-5A8.5 8.5 0 1121 11.5z"/></svg>
+        رسائل واتساب
+      </div>
+      <div class="nav-item" data-view="builder">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l2.4 5.5L20 11l-5.6 2.5L12 19l-2.4-5.5L4 11l5.6-2.5z"/></svg>
+        وكيل الأعمال
+      </div>
+      <div class="nav-item" data-view="training">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l3 6 6 1-4.5 4 1 6-5.5-3-5.5 3 1-6L3 9l6-1z"/></svg>
+        تدريب الوكيل
+      </div>
+      <div class="nav-item" data-view="posts">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5M8 17h3"/></svg>
+        المنشورات
+      </div>
+      <div class="nav-item" data-view="connections">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1.5-1.5"/></svg>
+        ربط الحسابات
+      </div>
+      <div class="nav-item" data-view="reports">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 3h9l5 5v13H6z"/><path d="M9 12h6M9 16h6M9 8h3"/></svg>
+        التقارير
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      البيانات محفوظة محلياً لحسابك.<br>
+      تصميم وتطوير: <b>Mauritech</b>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ===== OVERVIEW ===== -->
+    <section class="view active" id="view-overview">
+      <div class="topbar">
+        <div>
+          <h1 class="page-title">لوحة التحكم — Mauri AI</h1>
+          <p class="page-sub">نظرة شاملة على نشاط رصد السوق والتواصل مع الشركات</p>
+        </div>
+      </div>
+
+      <div class="grid grid-4" style="margin-bottom:16px;">
+        <div class="card stat-card">
+          <div class="stat-label">فرص مكتشفة</div>
+          <div class="stat-value"><span id="stat-opps">0</span></div>
+          <div class="stat-delta">قطاع التقنية والبرمجيات</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">شركات مستهدفة</div>
+          <div class="stat-value"><span id="stat-companies">0</span></div>
+          <div class="stat-delta" id="stat-companies-sub">لا يوجد بعد</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">طلبات من الواجهة العامة</div>
+          <div class="stat-value"><span id="stat-requests">0</span></div>
+          <div class="stat-delta">بانتظار المراجعة</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-label">صفقات جارية</div>
+          <div class="stat-value"><span id="stat-deals">0</span></div>
+          <div class="stat-delta">قيد التفاوض</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <div class="section-title">
+          رادار مسح وسائل التواصل الاجتماعي
+          <span class="pill demo">وضع تجريبي</span>
+        </div>
+        <div class="radar-wrap">
+          <div class="radar" id="radar-el">
+            <div class="radar-ring r1"></div>
+            <div class="radar-ring r2"></div>
+            <div class="radar-ring r3"></div>
+            <div class="radar-blip" style="top:28%;left:62%;animation-delay:.2s;"></div>
+            <div class="radar-blip" style="top:65%;left:35%;animation-delay:1s;"></div>
+            <div class="radar-blip" style="top:45%;left:75%;animation-delay:1.8s;"></div>
+          </div>
+          <div class="radar-caption">
+            يبحث الرادار عن <b>منشورات وطلبات فرص عمل تقنية</b> على فيسبوك ومنصات التواصل الأخرى، بناءً على الكلمات المفتاحية التي تحددها.
+            <div class="scan-form">
+              <div class="field">
+                <label>الكلمات المفتاحية</label>
+                <input id="scan-keywords" placeholder="مثال: تطوير موقع، تطبيق توصيل، متجر إلكتروني">
+              </div>
+              <div class="field" style="max-width:170px;">
+                <label>المنصة</label>
+                <select id="scan-platform">
+                  <option>فيسبوك</option>
+                  <option>واتساب بزنس</option>
+                  <option>انستغرام</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn gold sm" id="scan-btn" onclick="runScan()">ابدأ المسح</button>
+            <div class="scan-note">
+              <b>ملاحظة تقنية:</b> المسح الحي الفعلي لمنشورات فيسبوك يتطلب ربط حساب <b>Facebook Graph API</b> بمفتاح وصول (Access Token) صادر من حساب مطوّر Meta تابع للشركة، لأن فيسبوك لا يسمح بجلب البيانات دون تصريح رسمي. النتائج أدناه نموذجية لتوضيح شكل الفرص عند التفعيل — راجع تقرير التشغيل لمعرفة كيفية ربط مفتاح حقيقي لاحقاً.
+            </div>
+          </div>
+        </div>
+        <div id="scan-results" style="margin-top:16px;"></div>
+      </div>
+
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="section-title">آخر النشاطات</div>
+          <div id="activity-feed"><div class="empty">لا توجد نشاطات بعد — ابدأ بإضافة فرصة أو شركة.</div></div>
+        </div>
+        <div class="card">
+          <div class="section-title">آخر الطلبات من الواجهة العامة</div>
+          <div id="requests-preview"><div class="empty">لا توجد طلبات بعد.</div></div>
+        </div>
+      </div>
+
+      <div class="page-footer">تم إنشاء وتطوير هذا الموقع بواسطة <b>Mauritech</b> © 2026</div>
+    </section>
+
+    <!-- ===== OPPORTUNITIES ===== -->
+    <section class="view" id="view-opportunities">
+      <div class="topbar">
+        <div>
+          <h1 class="page-title">الفرص الاستثمارية</h1>
+          <p class="page-sub">فرص في قطاع التقنية والبرمجيات — أضف واحفظ وتتبّع كل فرصة</p>
+        </div>
+        <button class="btn gold" onclick="openOppModal()">+ إضافة فرصة</button>
+      </div>
+      <div class="card"><div id="opp-list"></div></div>
+    </section>
+
+    <!-- ===== COMPANIES ===== -->
+    <section class="view" id="view-companies">
+      <div class="topbar">
+        <div>
+          <h1 class="page-title">الشركات المستهدفة</h1>
+          <p class="page-sub">قاعدة بيانات الشركات واحتياجاتها التقنية وحالة التواصل معها</p>
+        </div>
+        <button class="btn gold" onclick="openCompanyModal()">+ إضافة شركة</button>
+      </div>
+      <div class="card"><div id="company-list"></div></div>
+    </section>
+
+    <!-- ===== REQUESTS ===== -->
+    <section class="view" id="view-requests">
+      <div class="topbar">
+        <div>
+          <h1 class="page-title">الطلبات الواردة من الواجهة العامة</h1>
+          <p class="page-sub">طلبات التقديم والتواصل التي أرسلها المستخدمون من واجهة الدردشة العامة</p>
+        </div>
+      </div>
+      <div class="card"><div id="requests-list"></div></div>
+      <div class="scan-note" style="margin-top:14px;">
+        <b>ملاحظة:</b> كل واجهة (لوحة التحكم والواجهة العامة) تحفظ بياناتها محلياً بشكل منفصل حالياً. لعرض طلبات المستخدمين الحقيقية هنا تلقائياً، يجب ربط الواجهتين بقاعدة بيانات مشتركة حقيقية (Backend) — موضّح في تقرير التشغيل.
+      </div>
+    </section>
+
+    <!-- ===== AGENT TRAINING ===== -->
+    <section class="view" id="view-training">
+      <div class="topbar">
+        <div>
+          <h1 class="page-title">تدريب الوكيل</h1>
+          <p class="page-sub">أي تعديل تطلبه هنا يتفعّل فوراً فِ كل رد للوكيل — الدردشة، ماسنجر، وواتساب</p>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:16px;">
+        <div class="card">
+          <div class="section-title">اطلب تعديلاً على الوكيل</div>
+          <div class="field"><textarea id="agent-update-text" rows="3" placeholder="مثال: خلي ردوده أقصر، أو زيد عليه يعرف يهدر عن أسعار الاستضافة تبدا من 2000 أوقية..."></textarea></div>
+          <button class="btn gold sm" onclick="applyAgentUpdate()">طبّق التعديل</button>
+          <div id="agent-update-status" style="margin-top:10px;font-size:12.5px;"></div>
+          <div class="scan-note" style="margin-top:14px;">
+            التعديل يُصاغ بالذكاء الاصطناعي كتعليمة واضحة ويُحفظ فوراً — بلا نشر كود جديد. راجع "آخر التعديلات" أسفل لمراجعتها أو حذفها.
+          </div>
+          <div id="agent-instructions-list" style="margin-top:14px;"></div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">قاعدة معرفة الوكيل</div>
+          <p style="font-size:13px;color:var(--text-muted);">معلومات ثابتة (أسعار، سياسات، تفاصيل خدمات) يستعملها الوكيل فِ كل رد بدل ما يختلق معلومات.</p>
+          <div class="field"><textarea id="agent-knowledge-text" rows="2" placeholder="مثال: نشتغل من السبت للخميس، من 9 صباحاً ل5 مساءً."></textarea></div>
+          <button class="btn sm" onclick="addAgentKnowledge()">إضافة للمعرفة</button>
+          <div id="agent-knowledge-list" style="margin-top:14px;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">
+          آخر الأخبار المحفوظة
+          <span class="pill">تُجمع تلقائياً كل ساعة</span>
+        </div>
+        <p style="font-size:13px;color:var(--text-muted);margin-top:-6px;">يرجع لها الوكيل إذا سُئل عن أخبار أو مستجدات — يتطلب إعداد NEWS_API_KEY (راجع README).</p>
+        <div id="news-list" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="page-footer">تم إنشاء وتطوير هذا الموقع بواسطة <b>Mauritech</b> © 2026</div>
+    </section>
+
+    <!-- ===== POSTS ===== -->
+    <section class="view" id="view-posts">
+      <div class="topbar">
+        <div>
+          <h1 class="page-title">المنشورات</h1>
+          <p class="page-sub">اكتب منشوراً أو اطلب من وكيل الأعمال يقترح واحد، ثم انشره مباشرة على صفحة فيسبوك المربوطة</p>
+        </div>
+      </div>
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="section-title">منشور جديد</div>
+          <div class="field"><label>نص المنشور</label><textarea id="post-text" rows="5" placeholder="اكتب المنشور هنا..."></textarea></div>
+          <div class="field"><label>رابط صورة (اختياري)</label><input id="post-image" placeholder="https://..."></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn ghost sm" onclick="askAgentForPost()">اطلب من وكيل الأعمال يقترح منشور</button>
+            <button class="btn gold sm" onclick="publishPost()">انشر على فيسبوك الآن</button>
+          </div>
+          <div id="post-status" style="margin-top:10px;font-size:12.5px;"></div>
+        </div>
+        <div class="card">
+          <div class="section-title">آخر المنشورات المنشورة</div>
+          <div id="posts-list"><div class="empty">لا توجد منشورات بعد.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CONNECTIONS ===== -->
+    <section class="view" id="view-connections">
+      <div class="topbar">
+        <div>
+          <h1 class="page-title">ربط الحسابات ووسائل التواصل</h1>
+          <p class="page-sub">اربط صفحة فيسبوك وحساب واتساب بزنس لإدارة الرسائل والإعلانات من هنا</p>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:16px;">
+        <div class="card">
+          <div class="section-title">صفحة فيسبوك — الرد التلقائي</div>
+          <p style="font-size:13px;color:var(--text-muted);line-height:1.8;">
+            بعد ربط الصفحة، سيرد <b style="color:var(--text);">وكيل الأعمال</b> تلقائياً على رسائل ماسنجر الواردة على صفحتك.
+          </p>
+          <div id="fb-status" style="margin:12px 0;"><span class="status-tag status-new">جارٍ التحقق من الحالة...</span></div>
+          <button class="btn gold sm" id="fb-connect-btn" onclick="connectFacebook()">ربط صفحة فيسبوك</button>
+          <div class="scan-note" style="margin-top:14px;">
+            بعد الربط، لتفعيل الرد التلقائي فعلياً يجب أيضاً إضافة رابط الـ Webhook هذا فِ Meta for Developers → تطبيقك → Webhooks → Page:
+            <div class="mono" style="margin-top:6px;color:var(--gold);word-break:break-all;">https://YOUR-DOMAIN/api/facebook/webhook</div>
+            مع Verify Token = قيمة <span class="mono">FB_VERIFY_TOKEN</span> ديالك، واشترك فِ حقول: <span class="mono">messages</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">واتساب بزنس — الرد التلقائي</div>
+          <p style="font-size:13px;color:var(--text-muted);line-height:1.8;">
+            بعد إعداد WhatsApp Cloud API، سيرد وكيل الأعمال تلقائياً على رسائل واتساب الواردة على رقمك الرسمي.
+          </p>
+          <span class="status-tag status-new">يتطلب إعداد من Meta Business</span>
+          <div class="scan-note" style="margin-top:14px;">
+            رابط الـ Webhook:
+            <div class="mono" style="margin-top:6px;color:var(--gold);word-break:break-all;">https://YOUR-DOMAIN/api/whatsapp/webhook</div>
+            مع Verify Token = قيمة <span class="mono">WHATSAPP_VERIFY_TOKEN</span>. التفاصيل الكاملة فِ README.
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-2" style="margin-bottom:16px;">
+        <div class="card">
+          <div class="section-title">آخر محادثات ماسنجر (وكيل الأعمال)</div>
+          <div id="fb-conversations-list"><div class="empty">لا توجد محادثات بعد.</div></div>
+        </div>
+        <div class="card">
+          <div class="section-title">آخر محادثات واتساب (وكيل الأعمال)</div>
+          <div id="wa-conversations-list"><div class="empty">لا توجد محادثات بعد.</div></div>
+        </div>
+      </div>
+
+
+      <div class="card">
+        <div class="section-title">
+          مكتبة إعلانات المنافسين (بيانات عامة حقيقية)
+          <span class="pill">Ads Library API</span>
+        </div>
+        <p style="font-size:13px;color:var(--text-muted);line-height:1.8;margin-top:-6px;">
+          هذا هو أقرب أداة حقيقية ومتاحة رسمياً من فيسبوك لـ"مسح السوق": ابحث باسم شركة أو كلمة مفتاحية لعرض الإعلانات النشطة حالياً على فيسبوك وإنستغرام في هذا المجال.
+        </p>
+        <div class="scan-form" style="margin-top:10px;">
+          <div class="field"><label>اسم الشركة أو الكلمة المفتاحية</label><input id="ads-lib-query" placeholder="مثال: توصيل طلبات نواكشوط"></div>
+          <div class="field" style="max-width:170px;"><label>الدولة</label><input id="ads-lib-country" value="MR"></div>
+        </div>
+        <button class="btn sm" onclick="searchAdsLibrary()">بحث في مكتبة الإعلانات</button>
+        <div id="ads-lib-results" style="margin-top:14px;"></div>
+      </div>
+
+      <div class="page-footer">تم إنشاء وتطوير هذا الموقع بواسطة <b>Mauritech</b> © 2026</div>
+    </section>
+
+    <!-- ===== MESSAGES ===== -->
+    <section class="view" id="view-messages">
+      <div class="topbar">
+        <div>
+          <h1 class="page-title">مركز رسائل واتساب</h1>
+          <p class="page-sub">اختر شركة واحصل على رسالة تواصل جاهزة بحسب احتياجها</p>
+        </div>
+      </div>
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="section-title">توليد رسالة</div>
+          <div class="field"><label>اختر الشركة</label><select id="msg-company-select"></select></div>
+          <div class="field">
+            <label>نبرة الرسالة</label>
+            <select id="msg-tone">
+              <option value="رسمية">رسمية</option>
+              <option value="ودية">ودية ومباشرة</option>
+              <option value="مختصرة">مختصرة جداً</option>
+            </select>
+          </div>
+          <button class="btn" onclick="generateWaMessage()">توليد الرسالة</button>
+          <p class="chat-hint" style="padding:10px 0 0;">ملاحظة: هذه رسالة جاهزة للنسخ والإرسال يدوياً. الإرسال التلقائي الفعلي عبر واتساب يتطلب لاحقاً ربط WhatsApp Business API من حسابك.</p>
+        </div>
+        <div class="card">
+          <div class="section-title">الرسالة المقترحة</div>
+          <div id="wa-output" class="report-box" style="direction:rtl;text-align:right;min-height:160px;">لم يتم توليد رسالة بعد.</div>
+          <button class="btn ghost sm" style="margin-top:10px;" onclick="copyWaMessage()">نسخ الرسالة</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== BUILDER (CHAT) ===== -->
+    <section class="view" id="view-builder">
+      <div class="topbar">
+        <div>
+          <h1 class="page-title">وكيل الأعمال</h1>
+          <p class="page-sub">وكيلك الذكي باللهجة الحسانية — يساعدك يدير أعمالك، يرد على الزبائن، ويقترح خطط لاستهداف السوق. متصل بالحسابات المربوطة في "ربط الحسابات".</p>
+        </div>
+        <button class="btn ghost sm" onclick="resetChat()">محادثة جديدة</button>
+      </div>
+      <div class="chat-shell">
+        <div class="chat-log" id="chat-log"></div>
+        <div class="chat-input-row">
+          <textarea id="chat-input" placeholder="مثال: اكتب لي رد على زبون سأل عن سعر الموقع..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
+          <button class="btn gold" onclick="sendChat()">إرسال</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== REPORTS ===== -->
+    <section class="view" id="view-reports">
+      <div class="topbar">
+        <div>
+          <h1 class="page-title">التقارير</h1>
+          <p class="page-sub">ملخص دوري لنشاط الفرص والشركات والتواصل</p>
+        </div>
+        <button class="btn gold" onclick="generateReport()">توليد تقرير جديد</button>
+      </div>
+      <div class="card"><div class="report-box" id="report-output">اضغط "توليد تقرير جديد" لإنشاء ملخص لحظي بحالة نشاطك.</div></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===== MODALS ===== -->
+<div class="modal-bg" id="opp-modal-bg">
+  <div class="modal">
+    <h3>إضافة فرصة استثمارية</h3>
+    <div class="field"><label>اسم الفرصة / الشركة</label><input id="opp-name" placeholder="مثال: منصة سحابية ناشئة"></div>
+    <div class="form-row">
+      <div class="field"><label>المخاطرة</label><select id="opp-risk"><option>منخفضة</option><option selected>متوسطة</option><option>مرتفعة</option></select></div>
+      <div class="field"><label>العائد المتوقع</label><select id="opp-return"><option>منخفض</option><option selected>متوسط</option><option>مرتفع</option></select></div>
+    </div>
+    <div class="field"><label>ملاحظات</label><textarea id="opp-notes" rows="3" placeholder="تفاصيل إضافية عن الفرصة"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn ghost sm" onclick="closeModal('opp-modal-bg')">إلغاء</button>
+      <button class="btn sm" onclick="saveOpportunity()">حفظ الفرصة</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="company-modal-bg">
+  <div class="modal">
+    <h3>إضافة شركة مستهدفة</h3>
+    <div class="field"><label>اسم الشركة</label><input id="co-name" placeholder="مثال: شركة النور للتقنية"></div>
+    <div class="form-row">
+      <div class="field"><label>الموقع / المدينة</label><input id="co-location" placeholder="نواكشوط"></div>
+      <div class="field"><label>الاحتياج</label><select id="co-need"><option>موقع إلكتروني</option><option>تطبيق</option><option>حل تقني مخصص</option><option>غير محدد بعد</option></select></div>
+    </div>
+    <div class="field"><label>حالة التواصل</label><select id="co-status"><option value="new">جديدة</option><option value="contacted">تم التواصل</option><option value="replied">ردّت</option><option value="deal">صفقة جارية</option></select></div>
+    <div class="modal-actions">
+      <button class="btn ghost sm" onclick="closeModal('company-modal-bg')">إلغاء</button>
+      <button class="btn sm" onclick="saveCompany()">حفظ الشركة</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------- Storage helpers (يعمل عبر /api/data المدعوم بـ Vercel KV بعد النشر) ---------------- */
+async function loadData(){
+  try{
+    const r = await fetch('/api/data');
+    if(!r.ok) throw new Error('bad response');
+    const data = await r.json();
+    return {opportunities:[], companies:[], activity:[], requests:[], ...data};
+  }catch(e){
+    console.error('تعذر تحميل البيانات من الخادم — تأكد من ربط Vercel KV بعد النشر', e);
+    return {opportunities:[], companies:[], activity:[], requests:[]};
+  }
+}
+async function saveData(data){
+  try{ await fetch('/api/data', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)}); }
+  catch(e){ console.error('تعذر حفظ البيانات على الخادم', e); }
+}
+let STATE = {opportunities:[], companies:[], activity:[], requests:[]};
+
+function logActivity(text){
+  STATE.activity.unshift({text, time: new Date().toLocaleString('ar')});
+  STATE.activity = STATE.activity.slice(0,8);
+}
+
+/* ---------------- Navigation ---------------- */
+document.querySelectorAll('.nav-item').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('view-'+item.dataset.view).classList.add('active');
+  });
+});
+
+/* ---------------- Modals ---------------- */
+function openOppModal(){ document.getElementById('opp-modal-bg').classList.add('open'); }
+function openCompanyModal(){ document.getElementById('company-modal-bg').classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+/* ---------------- تدريب الوكيل (تعديلات تُطبَّق فوراً على كل القنوات) ---------------- */
+async function applyAgentUpdate(){
+  const text = document.getElementById('agent-update-text').value.trim();
+  const statusEl = document.getElementById('agent-update-status');
+  if(!text){ statusEl.textContent = 'اكتب التعديل أولاً.'; return; }
+  statusEl.textContent = 'جارٍ تطبيق التعديل...';
+  try{
+    const r = await fetch('/api/agent/update', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ request: text })
+    });
+    const data = await r.json();
+    if(data.error){ statusEl.textContent = 'خطأ: '+data.error; return; }
+    statusEl.textContent = 'تم التطبيق ✓ — التعليمة: "'+data.instruction+'"';
+    document.getElementById('agent-update-text').value = '';
+    loadAgentInstructions();
+  }catch(e){ statusEl.textContent = 'تعذر الاتصال بالخادم.'; }
+}
+async function loadAgentInstructions(){
+  const el = document.getElementById('agent-instructions-list');
+  if(!el) return;
+  try{
+    const r = await fetch('/api/agent/update');
+    const data = await r.json();
+    if(!data.instructions || data.instructions.length===0){ el.innerHTML = '<div class="empty">لا توجد تعديلات مطبّقة بعد.</div>'; return; }
+    el.innerHTML = '<div class="section-title" style="font-size:12.5px;margin-bottom:6px;">آخر التعديلات المطبّقة</div>' +
+      data.instructions.slice(0,10).map(i=>`
+      <div class="list-item">
+        <div class="avatar">⚙️</div>
+        <div class="li-main"><div class="li-title" style="font-size:13px;">${i.instruction}</div><div class="li-sub">${i.time}</div></div>
+      </div>`).join('');
+  }catch(e){ el.innerHTML = ''; }
+}
+
+async function addAgentKnowledge(){
+  const text = document.getElementById('agent-knowledge-text').value.trim();
+  if(!text) return;
+  try{
+    await fetch('/api/agent/knowledge', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ note: text })
+    });
+    document.getElementById('agent-knowledge-text').value = '';
+    loadAgentKnowledge();
+  }catch(e){}
+}
+async function loadAgentKnowledge(){
+  const el = document.getElementById('agent-knowledge-list');
+  if(!el) return;
+  try{
+    const r = await fetch('/api/agent/knowledge');
+    const data = await r.json();
+    if(!data.notes || data.notes.length===0){ el.innerHTML = '<div class="empty">لا توجد معلومات مضافة بعد.</div>'; return; }
+    el.innerHTML = data.notes.map((n,i)=>`
+      <div class="list-item">
+        <div class="avatar">📌</div>
+        <div class="li-main"><div class="li-title" style="font-size:13px;">${n.note}</div><div class="li-sub">${n.time}</div></div>
+        <button class="btn ghost sm" onclick='deleteAgentKnowledge(${i})'>حذف</button>
+      </div>`).join('');
+  }catch(e){ el.innerHTML = ''; }
+}
+async function deleteAgentKnowledge(i){
+  try{ await fetch('/api/agent/knowledge', {method:'DELETE', headers:{'Content-Type':'application/json'}, body: JSON.stringify({index:i})}); loadAgentKnowledge(); }catch(e){}
+}
+
+async function loadNewsList(){
+  const el = document.getElementById('news-list');
+  if(!el) return;
+  try{
+    const r = await fetch('/api/news/list');
+    const data = await r.json();
+    if(!data.news || data.news.length===0){ el.innerHTML = '<div class="empty">لا توجد أخبار محفوظة بعد — تأكد من ضبط NEWS_API_KEY وتفعيل Cron.</div>'; return; }
+    el.innerHTML = data.news.slice(0,10).map(n=>`
+      <div class="list-item">
+        <div class="avatar">📰</div>
+        <div class="li-main"><div class="li-title" style="font-size:13px;"><a href="${n.url||'#'}" target="_blank">${n.title}</a></div><div class="li-sub">${n.time}</div></div>
+      </div>`).join('');
+  }catch(e){ el.innerHTML = '<div class="empty">تعذر تحميل الأخبار.</div>'; }
+}
+
+/* ---------------- Posts (نشر حقيقي على فيسبوك) ---------------- */
+async function askAgentForPost(){
+  const statusEl = document.getElementById('post-status');
+  statusEl.textContent = 'وكيل الأعمال كيكتب اقتراح...';
+  try{
+    const r = await fetch('/api/chat', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        system: 'انت وكيل الأعمال ديال Mauri AI، تهدر حسانية. اكتب منشور فيسبوك قصير وجذاب يروّج لخدمات تطوير المواقع والتطبيقات ديال Mauritech. رجّع نص المنشور فقط بلا مقدمة.',
+        useAgentPersona: false,
+        messages: [{role:'user', content:'اقترح منشور فيسبوك دابا'}]
+      })
+    });
+    const data = await r.json();
+    const text = (data.content||[]).map(b=>b.type==='text'?b.text:'').join('\n').trim();
+    if(text){ document.getElementById('post-text').value = text; statusEl.textContent = ''; }
+    else { statusEl.textContent = 'ما قدرش يقترح دابا، حاول مرة أخرى.'; }
+  }catch(e){ statusEl.textContent = 'تعذر الاتصال بوكيل الأعمال.'; }
+}
+async function publishPost(){
+  const message = document.getElementById('post-text').value.trim();
+  const imageUrl = document.getElementById('post-image').value.trim();
+  const statusEl = document.getElementById('post-status');
+  if(!message){ statusEl.textContent = 'اكتب نص المنشور أولاً.'; return; }
+  statusEl.textContent = 'جارٍ النشر على فيسبوك...';
+  try{
+    const r = await fetch('/api/facebook/publish-post', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ message, imageUrl: imageUrl || undefined })
+    });
+    const data = await r.json();
+    if(data.error){ statusEl.textContent = 'خطأ: '+data.error; return; }
+    statusEl.textContent = 'تم النشر بنجاح ✓';
+    document.getElementById('post-text').value=''; document.getElementById('post-image').value='';
+    loadPostsList();
+  }catch(e){ statusEl.textContent = 'تعذر النشر — تحقق من الاتصال.'; }
+}
+async function loadPostsList(){
+  const el = document.getElementById('posts-list');
+  if(!el) return;
+  try{
+    const r = await fetch('/api/facebook/posts');
+    const data = await r.json();
+    if(!data.posts || data.posts.length===0){ el.innerHTML = '<div class="empty">لا توجد منشورات بعد.</div>'; return; }
+    el.innerHTML = data.posts.map(p=>`
+      <div class="list-item">
+        <div class="avatar">📝</div>
+        <div class="li-main"><div class="li-title" style="font-size:13px;">${p.message}</div><div class="li-sub">${p.time}</div></div>
+      </div>`).join('');
+  }catch(e){ el.innerHTML = '<div class="empty">تعذر تحميل المنشورات.</div>'; }
+}
+
+/* ---------------- Conversation logs (Messenger / WhatsApp) ---------------- */
+async function loadFbConversations(){
+  const el = document.getElementById('fb-conversations-list');
+  if(!el) return;
+  try{
+    const r = await fetch('/api/facebook/conversations');
+    const data = await r.json();
+    if(!data.conversations || data.conversations.length===0){ el.innerHTML = '<div class="empty">لا توجد محادثات بعد.</div>'; return; }
+    el.innerHTML = data.conversations.slice(0,10).map(c=>`
+      <div class="list-item">
+        <div class="avatar">💬</div>
+        <div class="li-main"><div class="li-title" style="font-size:13px;">${c.userMessage}</div><div class="li-sub">رد وكيل الأعمال: ${c.agentReply}</div></div>
+      </div>`).join('');
+  }catch(e){ el.innerHTML = '<div class="empty">تعذر تحميل المحادثات.</div>'; }
+}
+async function loadWaConversations(){
+  const el = document.getElementById('wa-conversations-list');
+  if(!el) return;
+  try{
+    const r = await fetch('/api/whatsapp/conversations');
+    const data = await r.json();
+    if(!data.conversations || data.conversations.length===0){ el.innerHTML = '<div class="empty">لا توجد محادثات بعد.</div>'; return; }
+    el.innerHTML = data.conversations.slice(0,10).map(c=>`
+      <div class="list-item">
+        <div class="avatar">💬</div>
+        <div class="li-main"><div class="li-title" style="font-size:13px;">${c.userMessage}</div><div class="li-sub">رد وكيل الأعمال: ${c.agentReply}</div></div>
+      </div>`).join('');
+  }catch(e){ el.innerHTML = '<div class="empty">تعذر تحميل المحادثات.</div>'; }
+}
+
+/* ---------------- Facebook connection (real, via /api/facebook/*) ---------------- */
+async function checkFbStatus(){
+  const el = document.getElementById('fb-status');
+  const btn = document.getElementById('fb-connect-btn');
+  if(!el) return;
+  try{
+    const r = await fetch('/api/facebook/status');
+    const data = await r.json();
+    if(data.connected){
+      el.innerHTML = `<span class="status-tag status-replied">متصلة: ${data.pageName || 'صفحة فيسبوك'}</span>`;
+      btn.textContent = 'إعادة ربط / تغيير الصفحة';
+    } else {
+      el.innerHTML = `<span class="status-tag status-new">غير مربوطة بعد</span>`;
+    }
+  }catch(e){
+    el.innerHTML = `<span class="status-tag status-new">تعذر التحقق — تأكد من نشر المشروع وإعداد متغيرات فيسبوك</span>`;
+  }
+}
+function connectFacebook(){ window.location.href = '/api/facebook/login'; }
+
+async function searchAdsLibrary(){
+  const q = document.getElementById('ads-lib-query').value.trim();
+  const country = document.getElementById('ads-lib-country').value.trim() || 'MR';
+  const el = document.getElementById('ads-lib-results');
+  if(!q){ el.innerHTML = '<div class="empty">اكتب كلمة بحث أولاً.</div>'; return; }
+  el.innerHTML = '<div class="empty">جارٍ البحث في مكتبة إعلانات فيسبوك...</div>';
+  try{
+    const r = await fetch(`/api/facebook/ads-library-search?q=${encodeURIComponent(q)}&country=${encodeURIComponent(country)}`);
+    const data = await r.json();
+    if(data.error){ el.innerHTML = `<div class="empty">${data.error}</div>`; return; }
+    if(!data.results || data.results.length===0){ el.innerHTML = '<div class="empty">لا توجد إعلانات نشطة مطابقة حالياً.</div>'; return; }
+    el.innerHTML = data.results.map(ad=>`
+      <div class="list-item">
+        <div class="avatar">${(ad.page_name||'؟').charAt(0)}</div>
+        <div class="li-main"><div class="li-title">${ad.page_name||'صفحة غير معروفة'}</div><div class="li-sub">${ad.ad_creative_body || 'بدون نص'}</div></div>
+        <a href="${ad.ad_snapshot_url||'#'}" target="_blank" class="btn ghost sm">عرض الإعلان</a>
+      </div>`).join('');
+  }catch(e){
+    el.innerHTML = '<div class="empty">تعذر الاتصال بمكتبة الإعلانات — تأكد من إعداد مفتاح فيسبوك في متغيرات البيئة.</div>';
+  }
+}
+
+/* ---------------- Social scan (demo) ---------------- */
+const DEMO_POOL = [
+  {name:"محل تجاري يبحث عن موقع إلكتروني", detail:"صاحب متجر ملابس في نواكشوط نشر طلباً عن \"موقع لعرض المنتجات والدفع الإلكتروني\"", need:"موقع إلكتروني"},
+  {name:"مطعم يحتاج تطبيق طلبات", detail:"منشور يبحث عن \"تطبيق لطلب الأكل أونلاين مثل تطبيقات التوصيل\"", need:"تطبيق"},
+  {name:"شركة نقل تبحث عن نظام تتبع", detail:"تعليق في مجموعة أعمال يطلب \"نظام لتتبع الشحنات والسائقين\"", need:"حل تقني مخصص"},
+  {name:"مدرسة خاصة تريد منصة تعليمية", detail:"منشور يسأل عن \"من يبني منصة دروس أونلاين للطلاب\"", need:"حل تقني مخصص"},
+  {name:"صالون تجميل يبحث عن حجز إلكتروني", detail:"طلب في مجموعة نساء الأعمال عن \"نظام حجز مواعيد أونلاين\"", need:"موقع إلكتروني"},
+  {name:"شركة عقارات تحتاج تطبيق عرض عقارات", detail:"منشور يبحث عن \"تطبيق لعرض العقارات مع خرائط وصور\"", need:"تطبيق"},
+];
+
+function runScan(){
+  const kw = document.getElementById('scan-keywords').value.trim();
+  const platform = document.getElementById('scan-platform').value;
+  const btn = document.getElementById('scan-btn');
+  const radar = document.getElementById('radar-el');
+  const resultsEl = document.getElementById('scan-results');
+
+  btn.disabled = true; btn.textContent = 'جارٍ المسح...';
+  radar.classList.add('scanning');
+  resultsEl.innerHTML = '<div class="empty">يتم الآن مسح '+platform+' بحثاً عن فرص متعلقة بـ «'+(kw||'كل المجالات')+'»...</div>';
+
+  setTimeout(()=>{
+    btn.disabled = false; btn.textContent = 'ابدأ المسح';
+    radar.classList.remove('scanning');
+    const picks = [...DEMO_POOL].sort(()=>Math.random()-0.5).slice(0,3);
+    resultsEl.innerHTML = `
+      <div class="section-title" style="margin-bottom:8px;font-size:13px;">نتائج المسح (${platform}) <span class="pill demo">نموذجي</span></div>
+      ` + picks.map((p,i)=>`
+      <div class="list-item">
+        <div class="avatar">${p.name.charAt(0)}</div>
+        <div class="li-main">
+          <div class="li-title">${p.name}</div>
+          <div class="li-sub">${p.detail}</div>
+        </div>
+        <button class="btn ghost sm" onclick='addScanResultToCompanies(${i})'>إضافة كشركة مستهدفة</button>
+      </div>`).join('');
+    window.__lastScanPicks = picks;
+    logActivity('تم إجراء مسح على '+platform+' بالكلمات: '+(kw||'عام'));
+    saveData(STATE);
+    renderAll();
+  }, 1400);
+}
+async function addScanResultToCompanies(i){
+  const p = window.__lastScanPicks[i];
+  if(!p) return;
+  STATE.companies.push({id:'c'+Date.now(), name:p.name, location:'غير محدد', need:p.need, status:'new'});
+  logActivity('تمت إضافة نتيجة مسح كشركة مستهدفة: '+p.name);
+  await saveData(STATE);
+  renderAll();
+}
+
+/* ---------------- Opportunities ---------------- */
+async function saveOpportunity(){
+  const name = document.getElementById('opp-name').value.trim();
+  if(!name){ return; }
+  STATE.opportunities.push({
+    id:'o'+Date.now(), name,
+    risk: document.getElementById('opp-risk').value,
+    ret: document.getElementById('opp-return').value,
+    notes: document.getElementById('opp-notes').value.trim()
+  });
+  logActivity('تمت إضافة فرصة استثمارية: '+name);
+  document.getElementById('opp-name').value=''; document.getElementById('opp-notes').value='';
+  closeModal('opp-modal-bg'); await saveData(STATE); renderAll();
+}
+function riskColor(r){ return r==='مرتفعة'?'status-deal':(r==='متوسطة'?'status-contacted':'status-replied'); }
+function renderOpportunities(){
+  const el = document.getElementById('opp-list');
+  if(STATE.opportunities.length===0){ el.innerHTML = '<div class="empty">لا توجد فرص بعد. اضغط "إضافة فرصة" للبدء.</div>'; return; }
+  el.innerHTML = STATE.opportunities.map(o=>`
+    <div class="list-item">
+      <div class="avatar">${o.name.trim().charAt(0)}</div>
+      <div class="li-main"><div class="li-title">${o.name}</div><div class="li-sub">${o.notes || 'لا توجد ملاحظات'}</div></div>
+      <span class="status-tag ${riskColor(o.risk)}">مخاطرة ${o.risk}</span>
+      <span class="status-tag status-replied">عائد ${o.ret}</span>
+    </div>`).join('');
+}
+
+/* ---------------- Companies ---------------- */
+async function saveCompany(){
+  const name = document.getElementById('co-name').value.trim();
+  if(!name){ return; }
+  STATE.companies.push({
+    id:'c'+Date.now(), name,
+    location: document.getElementById('co-location').value.trim() || 'غير محدد',
+    need: document.getElementById('co-need').value,
+    status: document.getElementById('co-status').value
+  });
+  logActivity('تمت إضافة شركة مستهدفة: '+name);
+  document.getElementById('co-name').value=''; document.getElementById('co-location').value='';
+  closeModal('company-modal-bg'); await saveData(STATE); renderAll();
+}
+const statusLabel = {new:'جديدة', contacted:'تم التواصل', replied:'ردّت', deal:'صفقة جارية'};
+function renderCompanies(){
+  const el = document.getElementById('company-list');
+  if(STATE.companies.length===0){ el.innerHTML = '<div class="empty">لا توجد شركات بعد. اضغط "إضافة شركة" للبدء.</div>'; return; }
+  el.innerHTML = STATE.companies.map(c=>`
+    <div class="list-item">
+      <div class="avatar">${c.name.trim().charAt(0)}</div>
+      <div class="li-main"><div class="li-title">${c.name}</div><div class="li-sub">${c.location} · تحتاج: ${c.need}</div></div>
+      <select onchange="updateCompanyStatus('${c.id}', this.value)" style="width:auto;padding:5px 9px;font-size:12px;">
+        ${Object.entries(statusLabel).map(([k,v])=>`<option value="${k}" ${c.status===k?'selected':''}>${v}</option>`).join('')}
+      </select>
+    </div>`).join('');
+}
+async function updateCompanyStatus(id, status){
+  const c = STATE.companies.find(x=>x.id===id);
+  if(c){ c.status = status; await saveData(STATE); renderAll(); }
+}
+
+/* ---------------- Requests (from public interface, local demo) ---------------- */
+function renderRequests(){
+  const el = document.getElementById('requests-list');
+  const preview = document.getElementById('requests-preview');
+  if(STATE.requests.length===0){
+    el.innerHTML = '<div class="empty">لا توجد طلبات واردة بعد.</div>';
+    preview.innerHTML = '<div class="empty">لا توجد طلبات بعد.</div>';
+    return;
+  }
+  const rows = STATE.requests.map(r=>`
+    <div class="list-item">
+      <div class="avatar">${(r.name||'؟').charAt(0)}</div>
+      <div class="li-main"><div class="li-title">${r.name||'بدون اسم'} — ${r.subject||'طلب عام'}</div><div class="li-sub">${r.message||''}</div></div>
+      <span class="status-tag status-new">${r.time||''}</span>
+    </div>`).join('');
+  el.innerHTML = rows;
+  preview.innerHTML = STATE.requests.slice(0,3).map(r=>`
+    <div class="list-item">
+      <div class="avatar">${(r.name||'؟').charAt(0)}</div>
+      <div class="li-main"><div class="li-title" style="font-size:13px;">${r.name||'بدون اسم'}</div><div class="li-sub">${r.subject||''}</div></div>
+    </div>`).join('');
+}
+
+/* ---------------- WhatsApp messages ---------------- */
+function populateCompanySelect(){
+  const sel = document.getElementById('msg-company-select');
+  if(STATE.companies.length===0){ sel.innerHTML = '<option value="">لا توجد شركات — أضف شركة أولاً</option>'; return; }
+  sel.innerHTML = STATE.companies.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+}
+function generateWaMessage(){
+  const id = document.getElementById('msg-company-select').value;
+  const c = STATE.companies.find(x=>x.id===id);
+  const tone = document.getElementById('msg-tone').value;
+  const out = document.getElementById('wa-output');
+  if(!c){ out.textContent = 'الرجاء اختيار شركة أولاً.'; return; }
+  const needText = {'موقع إلكتروني':'موقع إلكتروني احترافي', 'تطبيق':'تطبيق جوّال', 'حل تقني مخصص':'حل تقني مخصص', 'غير محدد بعد':'حل تقني يناسب نشاطكم'}[c.need];
+  let msg = '';
+  if(tone==='رسمية'){
+    msg = `السلام عليكم،\n\nأتواصل معكم من Mauri AI بخصوص فرصة لتطوير ${needText} لشركة ${c.name}. لاحظنا احتياجاً محتملاً في هذا المجال، ونسعد بترتيب مكالمة قصيرة لعرض كيف يمكننا مساعدتكم.\n\nهل يناسبكم التواصل هذا الأسبوع؟\n\nتحياتنا،\nفريق Mauri AI`;
+  } else if(tone==='ودية'){
+    msg = `مرحباً 👋\n\nنحن فريق Mauri AI، ولاحظنا أن ${c.name} قد تستفيد من ${needText}. نساعد شركات مثلكم على بناء حلول تقنية سريعة واحترافية.\n\nهل عندكم وقت لدردشة قصيرة هذا الأسبوع؟`;
+  } else {
+    msg = `مرحباً، نحن Mauri AI. نبني ${needText} لشركات مثل ${c.name}. مهتمون بمكالمة سريعة؟`;
+  }
+  out.textContent = msg;
+}
+function copyWaMessage(){ navigator.clipboard.writeText(document.getElementById('wa-output').textContent).catch(()=>{}); }
+
+/* ---------------- Reports ---------------- */
+function generateReport(){
+  const total = STATE.companies.length;
+  const byStatus = {new:0,contacted:0,replied:0,deal:0};
+  STATE.companies.forEach(c=>byStatus[c.status]=(byStatus[c.status]||0)+1);
+  const now = new Date().toLocaleDateString('ar');
+  const report = [
+    `تقرير Mauri AI — ${now}`, '─'.repeat(40),
+    `إجمالي الفرص الاستثمارية المرصودة: ${STATE.opportunities.length}`,
+    `إجمالي الشركات المستهدفة: ${total}`,
+    `إجمالي الطلبات الواردة من الواجهة العامة: ${STATE.requests.length}`, '',
+    'حالة التواصل مع الشركات:',
+    `  • جديدة:        ${byStatus.new||0}`,
+    `  • تم التواصل:   ${byStatus.contacted||0}`,
+    `  • ردّت:          ${byStatus.replied||0}`,
+    `  • صفقة جارية:   ${byStatus.deal||0}`, '',
+    STATE.opportunities.length ? 'أبرز الفرص:' : '',
+    ...STATE.opportunities.slice(0,5).map(o=>`  - ${o.name} (مخاطرة ${o.risk}, عائد ${o.ret})`),
+  ].filter(Boolean).join('\n');
+  document.getElementById('report-output').textContent = report;
+  logActivity('تم توليد تقرير جديد');
+  saveData(STATE);
+}
+
+/* ---------------- Overview render ---------------- */
+function renderOverview(){
+  document.getElementById('stat-opps').textContent = STATE.opportunities.length;
+  document.getElementById('stat-companies').textContent = STATE.companies.length;
+  document.getElementById('stat-requests').textContent = STATE.requests.length;
+  document.getElementById('badge-opps').textContent = STATE.opportunities.length;
+  document.getElementById('badge-companies').textContent = STATE.companies.length;
+  document.getElementById('badge-requests').textContent = STATE.requests.length;
+  const deals = STATE.companies.filter(c=>c.status==='deal').length;
+  document.getElementById('stat-deals').textContent = deals;
+  document.getElementById('stat-companies-sub').textContent = STATE.companies.length ? 'قطاعات متعددة' : 'لا يوجد بعد';
+
+  const feed = document.getElementById('activity-feed');
+  if(STATE.activity.length===0){ feed.innerHTML = '<div class="empty">لا توجد نشاطات بعد.</div>'; }
+  else {
+    feed.innerHTML = STATE.activity.map(a=>`
+      <div class="list-item">
+        <div class="avatar" style="background:transparent;color:var(--emerald);font-size:18px;">•</div>
+        <div class="li-main"><div class="li-title" style="font-size:13px;font-weight:500;">${a.text}</div><div class="li-sub">${a.time}</div></div>
+      </div>`).join('');
+  }
+}
+
+function renderAll(){ renderOverview(); renderOpportunities(); renderCompanies(); renderRequests(); populateCompanySelect(); }
+
+/* ---------------- وكيل الأعمال (باللهجة الحسانية) ---------------- */
+const SYSTEM_PROMPT = `انت "وكيل الأعمال" ديال Mauri AI، وكيل ذكي محترف يشتغل مع فريق Mauritech فِ موريتانيا.
+
+الهوية والأسلوب:
+- تهدر باللهجة الحسانية الموريتانية بشكل طبيعي وواثق، بيّن انك فاهم السوق المحلي مليح، وما تخلط لهجات ثانية.
+- اسلوبك مباشر، ذكي، وفيه ثقة (متفوّق) بلا ما تكون متكبّر — هدفك تخلي صاحب العمل يحس انك يد اليمين ديالو.
+- تقدر تستعمل بعض الكلمات العربية الفصحى الواضحة للمصطلحات التقنية (موقع، تطبيق، عرض سعر) بلا ما تفقد الطابع الحساني فِ الهدرة.
+
+مهامك:
+1. تساعد صاحب العمل يرد على الزبائن (فِ واتساب افريقيا الغربية أو فيسبوك) بردود جاهزة وذكية.
+2. تقترح خطط لاستهداف السوق: مين الزبون المستهدف، وين نلقاوه، شنو نقترح عليه.
+3. تساعد فِ صياغة عروض الأسعار والرسائل التسويقية.
+4. إذا صاحب العمل ربط صفحة فيسبوك ديالو (من قسم "ربط الحسابات")، تقدر تقترح عليه منشورات أو ردود يرسلها من هناك — بلا ما تدّعي انك بعثتها بنفسك إلا إذا قال ليك ربطها فعلاً.
+5. ما تخترع بيانات ولا أسعار ولا صفقات ما قالهم ليك صاحب العمل.
+
+كون مختصر، منظم، ومفيد فِ كل رد.`;
+let chatHistory = [];
+function renderChatLog(){
+  const log = document.getElementById('chat-log');
+  if(chatHistory.length===0){
+    log.innerHTML = `<div class="msg ai"><b>وكيل الأعمال:</b> السلام عليكم 👋 آنا وكيل الأعمال ديالك. قول لي شنو عندك اليوم — رد على زبون، فكرة تسويق، ولا خطة نستهدف بها السوق؟</div>`;
+    return;
+  }
+  log.innerHTML = chatHistory.map(m=>`<div class="msg ${m.role==='user'?'user':'ai'}">${m.role==='assistant'?'<b>وكيل الأعمال:</b> ':''}${escapeHtml(m.content)}</div>`).join('');
+  log.scrollTop = log.scrollHeight;
+}
+function escapeHtml(s){ const d=document.createElement('div'); d.innerText=s; return d.innerHTML; }
+async function sendChat(){
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value=''; chatHistory.push({role:'user', content:text}); renderChatLog();
+  const log = document.getElementById('chat-log');
+  const typingEl = document.createElement('div');
+  typingEl.className='typing'; typingEl.textContent='وكيل الأعمال يكتب...';
+  log.appendChild(typingEl); log.scrollTop = log.scrollHeight;
+  try{
+    const response = await fetch('/api/chat', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ system: SYSTEM_PROMPT, messages: chatHistory.map(m=>({role:m.role, content:m.content})) })
+    });
+    const data = await response.json();
+    const reply = (data.content||[]).map(b=>b.type==='text'?b.text:'').join('\n').trim() || 'تعذّر توليد رد الآن، حاول مجدداً.';
+    chatHistory.push({role:'assistant', content:reply});
+  }catch(e){ chatHistory.push({role:'assistant', content:'حدث خطأ في الاتصال. حاول مرة أخرى.'}); }
+  typingEl.remove(); renderChatLog();
+  try{ localStorage.setItem('mauri-chat', JSON.stringify(chatHistory)); }catch(e){}
+}
+function resetChat(){ chatHistory = []; renderChatLog(); try{ localStorage.setItem('mauri-chat', JSON.stringify(chatHistory)); }catch(e){} }
+
+/* ---------------- Init ---------------- */
+(async function init(){
+  STATE = await loadData();
+  if(!STATE.requests) STATE.requests = [];
+  try{ const c = localStorage.getItem('mauri-chat'); chatHistory = c ? JSON.parse(c) : []; }catch(e){ chatHistory = []; }
+  renderAll(); renderChatLog(); checkFbStatus(); loadPostsList(); loadFbConversations(); loadWaConversations();
+  loadAgentInstructions(); loadAgentKnowledge(); loadNewsList();
+})();
+</script>
+</body>
+</html>

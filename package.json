@@ -1,0 +1,13 @@
+{
+  "name": "mauri-ai",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Mauri AI — لوحة تحكم ووواجهة عامة بمساعد ذكي، مع ربط فيسبوك/واتساب بزنس، منشورة على Vercel. تطوير Mauritech.",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "@vercel/kv": "^2.0.0"
+  }
+}
