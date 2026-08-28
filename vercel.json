@@ -2,8 +2,6 @@
   "cleanUrls": true,
   "rewrites": [
     { "source": "/admin", "destination": "/admin.html" }
-  ],
-  "crons": [
-    { "path": "/api/news/fetch", "schedule": "0 1 * * *" }
   ]
+ 
 }
